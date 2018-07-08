@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.qts.icam.mapper.PushMapper">
+
+	<select id="selectAllStudents" resultType="com.qts.icam.model.Student">
+		SELECT
+			scm.roll_number as roll,
+			r.first_name || ' ' || COALESCE(r.middle_name ,'') || ' ' || COALESCE(r.last_name ,' ') as studentName,
+			r.gender as "resource.gender",
+			std.standard_name as standard,
+			sec.section_name as section,
+			r.mobile_no as mobileNo,
+			r.email_address as strFormId,
+			h.house_name as house,
+			r.user_id as userId,
+			rest.resident_type_name as residentType
+		FROM
+			resource r
+		LEFT JOIN 
+			student_course_mapping scm ON (r.user_id = scm.user_id AND scm.is_active= true)
+		<!-- JOIN 
+			course c on (scm.course = c.rec_id AND c.is_active= true) -->
+		JOIN 
+			section sec on (scm.section = sec.rec_id AND sec.is_active= true)
+		LEFT JOIN 
+			standard std ON(sec.standard = std.rec_id AND std.is_active = true)
+		LEFT JOIN 
+			house h ON(r.house = h.rec_id AND h.is_active = true)
+		JOIN 
+			resource_type rt ON(rt.rec_id = r.resource_type AND rt.is_active = true)
+		<!-- LEFT JOIN 
+			subject sub ON (r.second_language = sub.rec_id AND sub.is_active = true) -->
+		LEFT JOIN
+			resident_type rest ON (r.resident_type = rest.rec_id AND rest.is_active = true)
+		WHERE 
+			r.is_active=true
+		AND 
+			rt.resource_type_name='STUDENT'
+	</select>
+	
+	<select id="selectCurrentAcademicYear" resultType="com.qts.icam.model.AcademicYear">
+		SELECT
+			academic_year_code as academicYearCode,
+			academic_year_name as academicYearName,
+			(to_char((SELECT to_timestamp(session_start_date)), 'DD/MM/YYYY')) as sessionStartDate ,
+			(to_char((SELECT to_timestamp(session_end_date)), 'DD/MM/YYYY')) as sessionEndDate
+		FROM
+			academic_year
+		WHERE
+			is_active = true
+		AND
+			year_status = (SELECT rec_id FROM status_flag WHERE status_sym = 'C');
+	</select>
+	
+	<resultMap id="selectStudentDetailsResultMap" type="com.qts.icam.model.Student">
+		<id property="userId" column="user_id" jdbcType="VARCHAR" />
+		<result property="dateOfAdmission" column="dateOfAdmission" jdbcType="VARCHAR" />	
+		<result property="fatherIncome" column="father_annual_income" jdbcType="INTEGER" />
+		<result property="motherIncome" column="mother_annual_income" jdbcType="INTEGER" />
+		<result property="guardianFirstName" column="guardian_first_name" jdbcType="VARCHAR" />
+		<result property="guardianMiddleName" column="guardian_middle_name" jdbcType="VARCHAR" />
+		<result property="guardianLastName" column="guardian_last_name" jdbcType="VARCHAR" />
+		<result property="standard" column="standard_code" jdbcType="VARCHAR" />		
+		<result property="section" column="section_code" jdbcType="VARCHAR" />
+		<result property="houseData.houseCode" column="house_code" jdbcType="VARCHAR" />
+		<result property="houseData.houseName" column="house_name" jdbcType="VARCHAR" />
+		<result property="residentTypeData.residentTypeCode" column="resident_type_code" jdbcType="VARCHAR" />
+		<result property="residentTypeData.residentTypeName" column="resident_type_name" jdbcType="VARCHAR" />
+		<result property="stateOfDomicile" column="state_of_domicile" jdbcType="VARCHAR" />
+		<result property="scholarship" column="scholarship_code" jdbcType="VARCHAR" />
+		<result property="studentIncome" column="student_income" jdbcType="INTEGER" />
+		<result property="familyIncome" column="family_income" jdbcType="INTEGER" />
+		<result property="guardianMobile" column="guardian_mobile" jdbcType="VARCHAR" />
+		<result property="guardianEmail" column="guardian_email" jdbcType="VARCHAR" />		
+		<result property="previousSchoolPhone" column="previous_scholl_phone" jdbcType="VARCHAR" />
+		<result property="previousSchoolWebsite" column="previous_school_website" jdbcType="VARCHAR" />
+		<result property="previousSchoolEmail" column="previous_school_email" jdbcType="VARCHAR" />
+		<result property="previousSchoolAddress" column="previous_school_address" jdbcType="VARCHAR" />
+		<result property="previousSchoolName" column="previous_school" jdbcType="VARCHAR" />
+		<result property="secondLanguage" column="subject_code" jdbcType="VARCHAR" />
+		<result property="courseId" column="course_code" jdbcType="VARCHAR" />
+		<result property="courseName" column="course_name" jdbcType="VARCHAR" />
+		<result property="roll" column="roll_number" jdbcType="VARCHAR" />
+		<association property="resource" javaType="com.qts.icam.model.Resource">
+			<result property = "registrationId" column = "registration_id" jdbcType = "VARCHAR"/>
+			<result property="firstName" column="first_name" jdbcType="VARCHAR" />
+			<result property="middleName" column="middle_name" jdbcType="VARCHAR" />
+			<result property="lastName" column="last_name" jdbcType="VARCHAR" />
+			<result property="dateOfBirth" column="dateOfBirth" jdbcType="VARCHAR" />
+			<result property="gender" column="gender" jdbcType="VARCHAR" />
+			<result property="fatherFirstName" column="father_first_name" jdbcType="VARCHAR" />
+			<result property="fatherMiddleName" column="father_middle_name" jdbcType="VARCHAR" />
+			<result property="fatherLastName" column="father_last_name" jdbcType="VARCHAR" />
+			<result property="motherFirstName" column="mother_first_name" jdbcType="VARCHAR" />
+			<result property="motherMiddleName" column="mother_middle_name" jdbcType="VARCHAR" />
+			<result property="motherLastName" column="mother_last_name" jdbcType="VARCHAR" />
+			<result property="emailId" column="email_address" jdbcType="VARCHAR" />
+			<result property="bloodGroup" column="blood_group" jdbcType="VARCHAR" />
+			<result property="motherTongue" column="mother_tongue" jdbcType="VARCHAR" />
+			<result property="religion" column="religion" jdbcType="VARCHAR" />
+			<result property="nationality" column="nationality" jdbcType="VARCHAR" />
+			<result property="category" column="social_category_code" jdbcType="VARCHAR" />
+			<result property="bankName" column="bank_name" jdbcType="VARCHAR" />
+			<result property="bankBranch" column="branch" jdbcType="VARCHAR" />
+			<result property="accountNumber" column="bank_account_number" jdbcType="VARCHAR" />
+			<result property="fatherInDefence" column="father_in_defence" jdbcType="BOOLEAN" />
+			<result property="fatherServiceStatus" column="father_service_status" jdbcType="VARCHAR" />
+			<result property="fatherDefenceCategory" column="father_defence_category" jdbcType="VARCHAR" />
+			<result property="fatherRank" column="father_rank" jdbcType="VARCHAR" />
+			<result property="fatherMobile" column="father_mobile" jdbcType="VARCHAR" />
+			<result property="fatherEmail" column="father_email" jdbcType="VARCHAR" />
+			<result property="motherMobile" column="mother_mobile" jdbcType="VARCHAR" />
+			<result property="motherEmail" column="mother_email" jdbcType="VARCHAR" />
+			<result property="medicalStatus" column="medical_status" jdbcType="VARCHAR" />
+			<result property="aadharCardNo" column="aadhar_card_no" jdbcType="VARCHAR" />
+			<collection property="attachmentList" ofType="com.qts.icam.model.Attachment">
+				<id property="storageObjectId" column="attachment_id" jdbcType="VARCHAR" />
+				<result property="storageRootPath" column="attachment_location" jdbcType="VARCHAR" />
+				<result property="attachmentName" column="attached_file_name" jdbcType="VARCHAR" />
+				<result property="attachmentType" column="attachment_type_name" jdbcType="VARCHAR" />
+			</collection>
+		</association>	
+	</resultMap>
+	<select id="selectStudentDetails" parameterType="java.lang.String" resultMap="selectStudentDetailsResultMap">
+		SELECT 
+			scm.roll_number,
+			registration_id,
+			(to_char((SELECT to_timestamp(date_of_admission)), 'DD/MM/YYYY')) as dateOfAdmission,						
+			father_annual_income,						
+			mother_annual_income,			
+			guardian_first_name,
+			guardian_middle_name,
+			guardian_last_name,			
+			std.standard_code,
+			section_code,
+			h.house_code,
+			h.house_name,
+			rest.resident_type_code,
+			rest.resident_type_name,
+			state_of_domicile,
+			sch.scholarship_code,
+			student_income,
+			family_income,
+			guardian_mobile,
+			guardian_email,
+			previous_scholl_phone,
+			previous_school_website,
+			previous_school_email,
+			previous_school_address,
+			previous_school,
+			first_name,
+			middle_name,
+			last_name,
+			(to_char((SELECT to_timestamp(date_of_birth)), 'DD/MM/YYYY')) as dateOfBirth,
+			r.gender,
+			father_first_name,
+			father_middle_name,
+			father_last_name,
+			mother_first_name,
+			mother_middle_name,
+			mother_last_name,
+			email_address,
+			blood_group,
+			mother_tongue,
+			religion,
+			nationality,
+			sc.social_category_code,
+			bank_name,
+			branch,
+			bank_account_number,
+			father_in_defence,
+			father_service_status,
+			father_defence_category,
+			father_rank,
+			father_mobile,
+			father_email,
+			mother_mobile,
+			mother_email,
+			medical_status,
+			att.attachment_id,
+			att.attachment_location,
+			att.attached_file_name,
+			attp.attachment_type_name,
+			sub.subject_code,
+			aadhar_card_no,
+			c.course_code,
+			c.course_name,
+			r.user_id
+		FROM resource r 
+		JOIN resource_type rt ON (r.resource_type = rt.rec_id AND rt.is_active = true)
+		JOIN student_course_mapping scm ON (scm.user_id = r.user_id AND scm.is_active = true)
+		JOIN course c ON (scm.course = c.rec_id AND c.is_active = true)
+		JOIN section sec ON (scm.section = sec.rec_id AND sec.is_active = true)
+		JOIN standard std ON (sec.standard = std.rec_id AND std.is_active = true)
+		LEFT JOIN house h ON (r.house = h.rec_id AND h.is_active = true)
+		LEFT JOIN social_category sc ON (r.social_category = sc.rec_id AND sc.is_active = true)
+		LEFT JOIN attachment att ON (r.rec_id = att.resource AND att.is_active = true)
+		LEFT JOIN attachment_type attp ON (att.attachment_type = attp.rec_id AND attp.is_active = true)
+		LEFT JOIN scholarship sch ON (r.scholarship = sch.rec_id AND sch.is_active = true)
+		LEFT JOIN subject sub ON (r.second_language = sub.rec_id AND sub.is_active = true)
+		LEFT JOIN resident_type rest ON (r.resident_type = rest.rec_id AND rest.is_active = true)
+		WHERE
+			rt.resource_type_code = 'STUDENT'
+		AND
+			r.user_id = #{rollNumber}
+		AND
+			r.is_active = true;
+	</select>
+	
+	<select id="getStandardNameforCourse" parameterType="java.lang.String" resultType="java.lang.String">
+ 		select 
+ 			s.standard_name 
+ 		FROM 
+ 			standard s LEFT JOIN course c on s.rec_id = c.standard 
+ 		WHERE 
+ 			s.rec_id = (SELECT standard FROM course WHERE course_code=#{courseId} AND is_active=true)
+ 		AND 
+ 			s. is_active = true;
+	</select>
+	
+	<select id="selectStudentAddress" parameterType="java.lang.String" resultType="com.qts.icam.model.Address">
+		SELECT  DISTINCT
+			a1.address_line as presentAddressLine, 
+			a1.land_mark as presentAddressLandmark, 
+			ct1.city_name as presentAddressCityVillage, 
+			dis1.district_name as presentAddressDistrict, 
+			a1.postal_code as presentAddressPinCode, 
+			st1.state_code as presentAddressState, 
+			cty1.country_code presentAddressCountry, 
+			a1.police_station as presentAddressPoliceStation, 
+			a1.post_office as presentAddressPostOffice,
+			a1.railway_station as presentAddressRailwayStation, 
+			a1.phone as presentAddressPhone,
+		
+			a2.address_line as permanentAddressLine, 
+			a2.land_mark as permanentAddressLandmark, 
+			ct2.city_name as permanentAddressCityVillage, 
+			dis2.district_name as permanentAddressDistrict, 
+			a2.postal_code as permanentAddressPinCode, 
+			st2.state_code as permanentAddressState, 
+			cty2.country_code as permanentAddressCountry, 
+			a2.police_station as permanentAddressPoliceStation, 
+			a2.post_office as permanentAddressPostOffice,
+			a2.railway_station as permanentAddressRailwayStation,
+			a2.phone as permanentAddressPhone,
+		
+			a3.address_line as guardianAddressLine, 
+			a3.land_mark as guardianAddressLandmark, 
+			ct3.city_name as guardianAddressCityVillage, 
+			dis3.district_name as guardianAddressDistrict, 
+			a3.postal_code as guardianAddressPinCode, 
+			st3.state_code as guardianAddressState,
+			cty3.country_code as guardianAddressCountry, 
+			a3.police_station as guardianAddressPoliceStation, 
+			a3.post_office as guardianAddressPostOffice,
+			a3.railway_station as guardianAddressRailwayStation,
+			a3.phone as guardianAddressPhone
+		FROM address a1
+			JOIN resource r1 ON (a1.resource = r1.rec_id AND a1.is_active = true AND r1.is_active = true)
+		
+			JOIN state st1 ON (a1.state = st1.rec_id AND st1.is_active = true)
+			LEFT JOIN district dis1 ON (a1.district = dis1.rec_id AND dis1.is_active = true)
+			LEFT JOIN city ct1 ON (a1.city = ct1.rec_id AND ct1.is_active = true)
+			JOIN country cty1 ON (a1.country = cty1.rec_id AND cty1.is_active = true)
+		
+			JOIN address a2 ON (a2.resource = r1.rec_id)
+			JOIN state st2 ON (a2.state = st2.rec_id AND st2.is_active = true)
+			LEFT JOIN district dis2 ON (a2.district = dis2.rec_id AND dis2.is_active = true)
+			LEFT JOIN city ct2 ON (a2.city = ct2.rec_id AND ct2.is_active = true)
+			JOIN country cty2 ON (a2.country = cty2.rec_id AND cty2.is_active = true)
+		
+			LEFT JOIN address a3 ON (a3.resource = r1.rec_id)
+			LEFT JOIN state st3 ON (a3.state = st3.rec_id AND st3.is_active = true)
+			LEFT JOIN district dis3 ON (a3.district = dis3.rec_id AND dis3.is_active = true)
+			LEFT JOIN city ct3 ON (a3.city = ct3.rec_id AND ct3.is_active = true)
+			LEFT JOIN country cty3 ON (a3.country = cty3.rec_id AND cty3.is_active = true)
+		WHERE
+			r1.user_id = #{userId}
+			AND
+			a1.address_type = 'PRESENT'
+			AND
+			a2.address_type = 'PERMANENT'
+			AND
+			a3.address_type = 'LOCAL GUARDIAN';
+	</select>
+	
+	<insert id="addWebIQTransaction" parameterType="com.qts.icam.model.WebIQTransaction">
+		 INSERT INTO webiq_transaction_details(
+	            rec_id, obj_id, updated_by, updated_on, date_of_creation, 
+	            uri, request_json, response_json, status)
+	    VALUES ((select uuid_generate_v4()), #{objectId},
+	    	(SELECT rec_id FROM resource WHERE user_id  ilike #{updatedBy} AND is_active = true),
+			(SELECT extract(epoch FROM now())),(SELECT extract(epoch FROM now())),
+			#{uri}, #{requestJSON}, #{responseJSON}, #{status}); 
+	</insert>
+	
+	<resultMap id="selectStandardsWithSectionRM" type="com.qts.icam.model.Standard">
+		<id property="standardId" column="standard_id" jdbcType="INTEGER" />
+		<result property="standardCode" column="standard_code" jdbcType="VARCHAR" />
+		<result property="standardName" column="standard_name" jdbcType="VARCHAR" />
+		<result property="status" column="post" jdbcType="BOOLEAN" />	<!-- new line added on 13.042017 -->	
+		<collection property="sectionList" ofType="com.qts.icam.model.Section">
+			<id property="sectionCode" column="section_code" jdbcType="VARCHAR" />
+			<result property="sectionName" column="section_name" jdbcType="VARCHAR" />
+		</collection>
+	</resultMap>
+
+	<select id="selectStandardsWithSection" resultMap="selectStandardsWithSectionRM">
+		SELECT
+			s.standard_id,
+			s.standard_name,
+			s.standard_code,
+			s.post,				<!-- new line added on 13.042017 -->
+			sec.section_code,
+			sec.section_name
+		FROM
+			standard s
+		LEFT JOIN 
+			section sec ON(sec.standard=s.rec_id AND sec.is_active=true)
+		WHERE
+			s.is_active = true
+		AND
+			section_code != 'NA'	
+		ORDER BY 
+			s.standard_id, sec.section_code;
+	</select>
+	
+	<select id="selectStudentsToAssignSection" resultType="com.qts.icam.model.Student" parameterType="com.qts.icam.model.Student">
+		SELECT
+			scm.roll_number as rollNumber, 
+			r.user_id as userId,
+			r.first_name || ' ' || COALESCE(r.middle_name ,'') || ' ' || COALESCE(r.last_name,'  ')  as studentName,
+			sub.subject_code as secondLanguage
+		FROM
+			resource r
+			JOIN student_course_mapping scm ON (scm.user_id = r.user_id AND scm.is_active = true)
+			LEFT JOIN section sec ON(scm.section=sec.rec_id AND sec.is_active=true)
+			LEFT JOIN standard std ON(sec.standard=std.rec_id AND std.is_active=true)
+			JOIN course c ON (c.standard = std.rec_id AND c.is_active = true)
+			LEFT JOIN subject sub ON(r.second_language=sub.rec_id AND sub.is_active=true)
+			JOIN resource_type rt ON(r.resource_type=rt.rec_id AND rt.is_active=true)
+		WHERE
+			r.is_active=true
+		AND
+			sec.section_code= #{section}
+		AND
+			std.standard_code=#{standard}
+		AND
+			rt.resource_type_name='STUDENT'
+		ORDER BY 
+			rollNumber;
+	</select>
+
+</mapper>
