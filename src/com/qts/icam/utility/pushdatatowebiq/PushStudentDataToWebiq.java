@@ -45,35 +45,41 @@ public class PushStudentDataToWebiq {
 			
 			AcademicYear academicYear = pushService.getCurrentAcademicYear();
 			
-			studentList = pushService.getStudentList();
+			//studentList = pushService.getStudentList();
 			Student stu = new Student();
-			//stu.setRoll("4638");
+			stu.setRoll("4678");
 			studentList.add(stu);
 			int noOfStudents = (null != studentList) ? studentList.size() : 0;
 			System.out.println("Size of student list : " +  noOfStudents);
-			
+			String standardName = null;
 			if(null != studentList){
 				for(Student cadet : studentList){
 					
 					Student student = pushService.getStudentDetails(cadet.getRoll());
-					
-					String standardName = pushService.getStandardNameforCourse(student.getCourseId());
+					System.out.println("Resource Entry:roll no:"+student.getUserId());
+					if(null!=student.getCourseId()) 
+					standardName = pushService.getStandardNameforCourse(student.getCourseId());
 					
 					JSONObject jsonObj = pushStudentDataToWebiq.createCadetDetailsJson(student, standardName, academicYear);
 					System.out.println("Cadet Details JSON : " +  jsonObj.toString());
 					
 					String status = pushStudentDataToWebiq.sendJsonData(jsonObj);
+					/*JSONObject jsonReq = pushStudentDataToWebiq.createLdapJson(student);
+					String jsonReponse = pushStudentDataToWebiq.createUser(jsonReq);
 					
-					if(status.equalsIgnoreCase("Successful")){
+					if(jsonReponse.equalsIgnoreCase("success")){
+						//System.out.println("Cadet login crested in LDAP for Roll Number  : " +  cadet.getRoll());
+					}*/
+					/*if(status.equalsIgnoreCase("Successful")){
 						JSONObject jsonReq = pushStudentDataToWebiq.createLdapJson(student);
 						String jsonReponse = pushStudentDataToWebiq.createUser(jsonReq);
 						
 						if(jsonReponse.equalsIgnoreCase("success")){
-							System.out.println("Cadet login crested in LDAP for Roll Number  : " +  cadet.getRoll());
+							//System.out.println("Cadet login crested in LDAP for Roll Number  : " +  cadet.getRoll());
 						}
-					}
+					}*/
 					
-					System.out.println("Cadet Data push to Webiq " + status + "  for Cadet having Roll Number : " +  cadet.getRoll());
+					//System.out.println("Cadet Data push to Webiq " + status + "  for Cadet having Roll Number : " +  cadet.getRoll());
 				}
 			}
 		} catch (Exception e) {
@@ -128,7 +134,7 @@ public class PushStudentDataToWebiq {
 			
 			status = "Failed";
 		}
-		System.out.println("JSON response:::"+ json_response);
+		System.out.println("RESOURCE ENTRY JSON response:::"+ json_response);
 		//String json_response = "{\"status\" : \"200\"}";
 		if((!json_response.isEmpty())){
 			
@@ -162,7 +168,7 @@ public class PushStudentDataToWebiq {
 			}
 			
 			try{
-			pushService.addWebIQTransaction(webIQTran);
+				pushService.addWebIQTransaction(webIQTran);
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -369,7 +375,7 @@ public class PushStudentDataToWebiq {
 	
 	private String createUser(JSONObject jsonReq) {
 		
-		System.out.println(jsonReq);
+		//System.out.println(jsonReq);
 		String jsonRes = "fail";
 		
 		try{
@@ -431,8 +437,8 @@ public class PushStudentDataToWebiq {
 	        jsonRes = "success";*/
 			
 			final String ldapURI = "http://apps.sainikschoolpurulia.com/api/ldap/rest/createUser";
-			System.out.println("URI:::"+ldapURI);
-			System.out.println("JSON for LDAP:"+jsonReq.toString());
+			//System.out.println("URI:::"+ldapURI);
+			//System.out.println("JSON for LDAP:"+jsonReq.toString());
 			URL ldapURL = new URL(ldapURI);
 			HttpURLConnection ldapConnection = null;
 			OutputStreamWriter ldapOut = null;
@@ -456,16 +462,16 @@ public class PushStudentDataToWebiq {
 			while((text = ldapBr.readLine())!= null){
 					ldap_json_response += text;
 			}
-			System.out.println("JSON RESPONSE: "+ldap_json_response);
+			System.out.println("LDAP JSON RESPONSE: "+ldap_json_response);
 			
 			JSONObject ldapResponseObject = new JSONObject(ldap_json_response);
 			String message = (String)ldapResponseObject.get("message");
-			System.out.println("Message from JSON response:"+message);
+			//System.out.println("Message from JSON response:"+message);
 			if(message.equalsIgnoreCase("success")){
 				jsonRes = "success";
-				System.out.println("The LDAP User Creation was successful");
+				//System.out.println("The LDAP User Creation was successful");
 			}else{
-				System.out.println("The LDAP User Creation was a failure");
+				//System.out.println("The LDAP User Creation was a failure");
 			}			 
 		}catch(Exception e){
 			e.printStackTrace();
