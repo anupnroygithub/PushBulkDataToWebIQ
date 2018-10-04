@@ -31,7 +31,7 @@ public class PushStudentDataToWebiq {
 	
 	private static List<Student> studentList = new ArrayList<Student>();
 	
-	private static String uri = "http://apps.sainikschoolpurulia.com/api/webiq/v1/sendBasicDetailsOfCadet";
+	private static String uri = "http://demoapi.sayakonline.com/v1/sendBasicDetailsOfCadet";
 	private static String portalUserName = "adminwebservice@qtsin.net";
 	private static String portalPassWord = "!Q2w3e4r";
 	
@@ -45,41 +45,35 @@ public class PushStudentDataToWebiq {
 			
 			AcademicYear academicYear = pushService.getCurrentAcademicYear();
 			
-			//studentList = pushService.getStudentList();
+			studentList = pushService.getStudentList();
 			Student stu = new Student();
-			stu.setRoll("4678");
+			//stu.setRoll("5092");
 			studentList.add(stu);
 			int noOfStudents = (null != studentList) ? studentList.size() : 0;
 			System.out.println("Size of student list : " +  noOfStudents);
-			String standardName = null;
+			
 			if(null != studentList){
 				for(Student cadet : studentList){
 					
 					Student student = pushService.getStudentDetails(cadet.getRoll());
-					System.out.println("Resource Entry:roll no:"+student.getUserId());
-					if(null!=student.getCourseId()) 
-					standardName = pushService.getStandardNameforCourse(student.getCourseId());
+					
+					String standardName = pushService.getStandardNameforCourse(student.getCourseId());
 					
 					JSONObject jsonObj = pushStudentDataToWebiq.createCadetDetailsJson(student, standardName, academicYear);
 					System.out.println("Cadet Details JSON : " +  jsonObj.toString());
 					
 					String status = pushStudentDataToWebiq.sendJsonData(jsonObj);
-					/*JSONObject jsonReq = pushStudentDataToWebiq.createLdapJson(student);
-					String jsonReponse = pushStudentDataToWebiq.createUser(jsonReq);
 					
-					if(jsonReponse.equalsIgnoreCase("success")){
-						//System.out.println("Cadet login crested in LDAP for Roll Number  : " +  cadet.getRoll());
-					}*/
-					/*if(status.equalsIgnoreCase("Successful")){
-						JSONObject jsonReq = pushStudentDataToWebiq.createLdapJson(student);
+					if(status.equalsIgnoreCase("Successful")){
+						String jsonReq = pushStudentDataToWebiq.createLdapJson(student);
 						String jsonReponse = pushStudentDataToWebiq.createUser(jsonReq);
 						
 						if(jsonReponse.equalsIgnoreCase("success")){
-							//System.out.println("Cadet login crested in LDAP for Roll Number  : " +  cadet.getRoll());
+							System.out.println("Cadet login crested in LDAP for Roll Number  : " +  cadet.getRoll());
 						}
-					}*/
+					}
 					
-					//System.out.println("Cadet Data push to Webiq " + status + "  for Cadet having Roll Number : " +  cadet.getRoll());
+					System.out.println("Cadet Data push to Webiq " + status + "  for Cadet having Roll Number : " +  cadet.getRoll());
 				}
 			}
 		} catch (Exception e) {
@@ -134,7 +128,7 @@ public class PushStudentDataToWebiq {
 			
 			status = "Failed";
 		}
-		System.out.println("RESOURCE ENTRY JSON response:::"+ json_response);
+		System.out.println("JSON response:::"+ json_response);
 		//String json_response = "{\"status\" : \"200\"}";
 		if((!json_response.isEmpty())){
 			
@@ -168,7 +162,7 @@ public class PushStudentDataToWebiq {
 			}
 			
 			try{
-				pushService.addWebIQTransaction(webIQTran);
+			pushService.addWebIQTransaction(webIQTran);
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -178,17 +172,13 @@ public class PushStudentDataToWebiq {
 		return status;
 	}
 	
-	private JSONObject createLdapJson(Student student) throws Exception{
-		JSONObject ldapJsonObj = new JSONObject();
-		//String jsonReq = "{\"firstName\":" + "\"" + student.getResource().getFirstName() + "\"," + "\"lastName\":" +  "\"" + student.getResource().getLastName() + "\"," + "\"userName\":" +  "\"" + student.getRoll() + "\"," + "\"password\": \"welcome\", \"organization\": \"ss-purulia\", \"serviceUserName\": \"test\", \"servicePassword\": \"test\"}";		
-		ldapJsonObj.put("userName",student.getUserId());
-		ldapJsonObj.put("password","welcome");
-		ldapJsonObj.put("organization","ss-purulia");
-		ldapJsonObj.put("firstName", student.getResource().getFirstName());
-		ldapJsonObj.put("lastName", student.getResource().getLastName());
-		ldapJsonObj.put("serviceUserName","test");
-		ldapJsonObj.put("servicePassword","test");
-		return ldapJsonObj;
+	private String createLdapJson(Student student) throws Exception{
+		
+		String jsonReq = "{\"firstName\":" + "\"" + student.getResource().getFirstName() + "\"," + "\"lastName\":" +  "\"" + student.getResource().getLastName() + "\"," + "\"userName\":" +  "\"" + student.getRoll() + "\"," + "\"password\": \"welcome\", \"organization\": \"ss-purulia\", \"serviceUserName\": \"test\", \"servicePassword\": \"test\"}";
+				
+		
+		return jsonReq;
+		
 	}
 	
 	private JSONObject createCadetDetailsJson(Student student, String standardName, AcademicYear academicYear) throws Exception{
@@ -212,12 +202,9 @@ public class PushStudentDataToWebiq {
 		jsonObj.put("admissisonDate",student.getDateOfAdmission());	
 		jsonObj.put("gender", student.getResource().getGender());
 		jsonObj.put("bloodGroup", student.getResource().getBloodGroup());
-		if(null!=student.getResource().getCategory()) {
-			jsonObj.put("category", student.getResource().getCategory());
-		}else {
-			jsonObj.put("category", "GENERAL");
-		}
-		//jsonObj.put("category", "GENERAL");
+		
+		//jsonObj.put("category", student.getResource().getCategory());
+		jsonObj.put("category", "GENERAL");
 		
 		jsonObj.put("religion", student.getResource().getReligion());
 		jsonObj.put("motherTongue", student.getResource().getMotherTongue());
@@ -279,90 +266,49 @@ public class PushStudentDataToWebiq {
 		
 		JSONArray addressDetails = new JSONArray();
 		JSONObject jsonObjAddress = new JSONObject();
-		if(null!= student.getAddress()) {
-			if(null!=student.getAddress().getPresentAddressLine()) {
-				jsonObjAddress.put("presentAddressLine", student.getAddress().getPresentAddressLine());
-			}else {
-				jsonObjAddress.put("presentAddressLine","");
-			}
-			if(null!=student.getAddress().getPermanentAddressLandmark())
-			jsonObjAddress.put("presentAddressLandmark", student.getAddress().getPermanentAddressLandmark()); 
-			if(null!=student.getAddress().getPresentAddressCityVillage())
-			jsonObjAddress.put("presentAddressCityVillage", student.getAddress().getPresentAddressCityVillage());
-			if(null!=student.getAddress().getPresentAddressPinCode())
-			jsonObjAddress.put("presentAddressPinCode", student.getAddress().getPresentAddressPinCode());
-			if(null!=student.getAddress().getPresentAddressDistrict())
-			jsonObjAddress.put("presentAddressDistrict", student.getAddress().getPresentAddressDistrict());
-			if(null!=student.getAddress().getPresentAddressState())
-			jsonObjAddress.put("presentAddressState", student.getAddress().getPresentAddressState());
-			if(null!=student.getAddress().getPermanentAddressCountry())
-			jsonObjAddress.put("presentAddressCountry", student.getAddress().getPermanentAddressCountry());
-			if(null!=student.getAddress().getPermanentAddressPostOffice())
-			jsonObjAddress.put("presentAddressPostOffice", student.getAddress().getPermanentAddressPostOffice());
-			if(null!=student.getAddress().getPermanentAddressPoliceStation())
-			jsonObjAddress.put("presentAddressPoliceStation", student.getAddress().getPermanentAddressPoliceStation());
-			
-			if(null!=student.getAddress().getPermanentAddressLine())
-			jsonObjAddress.put("permanentAddressLine", student.getAddress().getPermanentAddressLine()); 
-			if(null!=student.getAddress().getPermanentAddressLandmark())
-			jsonObjAddress.put("permanentAddressLandmark", student.getAddress().getPermanentAddressLandmark()); 
-			if(null!=student.getAddress().getPermanentAddressCityVillage())
-			jsonObjAddress.put("permanentAddressCityVillage", student.getAddress().getPermanentAddressCityVillage());
-			if(null!=student.getAddress().getPermanentAddressPinCode())
-			jsonObjAddress.put("permanentAddressPinCode", student.getAddress().getPermanentAddressPinCode());
-			if(null!=student.getAddress().getPermanentAddressDistrict())
-			jsonObjAddress.put("permanentAddressDistrict", student.getAddress().getPermanentAddressDistrict());
-			if(null!=student.getAddress().getPermanentAddressState())
-			jsonObjAddress.put("permanentAddressState", student.getAddress().getPermanentAddressState());
-			if(null!=student.getAddress().getPermanentAddressCountry())
-			jsonObjAddress.put("permanentAddressCountry", student.getAddress().getPermanentAddressCountry());
-			if(null!=student.getAddress().getPermanentAddressPostOffice())
-			jsonObjAddress.put("permanentAddressPostOffice", student.getAddress().getPermanentAddressPostOffice());
-			if(null!=student.getAddress().getPermanentAddressPoliceStation())
-			jsonObjAddress.put("permanentAddressPoliceStation", student.getAddress().getPermanentAddressPoliceStation());
-			
-			if(null!=student.getAddress().getGuardianAddressLine())
-			jsonObjAddress.put("guardianAddressLine", student.getAddress().getGuardianAddressLine()); 
-			if(null!=student.getAddress().getGuardianAddressLandmark())
-			jsonObjAddress.put("guardianAddressLandmark", student.getAddress().getGuardianAddressLandmark()); 
-			if(null!=student.getAddress().getGuardianAddressCityVillage())
-			jsonObjAddress.put("guardianAddressCityVillage", student.getAddress().getGuardianAddressCityVillage());
-			if(null!=student.getAddress().getGuardianAddressPinCode())
-			jsonObjAddress.put("guardianAddressPinCode", student.getAddress().getGuardianAddressPinCode());
-			if(null!=student.getAddress().getGuardianAddressDistrict())
-			jsonObjAddress.put("guardianAddressDistrict", student.getAddress().getGuardianAddressDistrict());
-			if(null!=student.getAddress().getGuardianAddressState())
-			jsonObjAddress.put("guardianAddressState", student.getAddress().getGuardianAddressState());
-			if(null!=student.getAddress().getGuardianAddressCountry())
-			jsonObjAddress.put("guardianAddressCountry", student.getAddress().getGuardianAddressCountry());
-			if(null!=student.getAddress().getGuardianAddressPostOffice())
-			jsonObjAddress.put("guardianAddressPostOffice", student.getAddress().getGuardianAddressPostOffice());
-			if(null!=student.getAddress().getGuardianAddressPoliceStation())
-			jsonObjAddress.put("guardianAddressPoliceStation", student.getAddress().getGuardianAddressPoliceStation());
-		}
+		jsonObjAddress.put("presentAddressLine", student.getAddress().getPresentAddressLine()); 
+		jsonObjAddress.put("presentAddressLandmark", student.getAddress().getPermanentAddressLandmark()); 
+		jsonObjAddress.put("presentAddressCityVillage", student.getAddress().getPresentAddressCityVillage());
+		jsonObjAddress.put("presentAddressPinCode", student.getAddress().getPresentAddressPinCode());
+		jsonObjAddress.put("presentAddressDistrict", student.getAddress().getPresentAddressDistrict());
+		jsonObjAddress.put("presentAddressState", student.getAddress().getPresentAddressState());
+		jsonObjAddress.put("presentAddressCountry", student.getAddress().getPermanentAddressCountry());
+		jsonObjAddress.put("presentAddressPostOffice", student.getAddress().getPermanentAddressPostOffice());
+		jsonObjAddress.put("presentAddressPoliceStation", student.getAddress().getPermanentAddressPoliceStation());
+		
+		jsonObjAddress.put("permanentAddressLine", student.getAddress().getPermanentAddressLine()); 
+		jsonObjAddress.put("permanentAddressLandmark", student.getAddress().getPermanentAddressLandmark()); 
+		jsonObjAddress.put("permanentAddressCityVillage", student.getAddress().getPermanentAddressCityVillage());
+		jsonObjAddress.put("permanentAddressPinCode", student.getAddress().getPermanentAddressPinCode());
+		jsonObjAddress.put("permanentAddressDistrict", student.getAddress().getPermanentAddressDistrict());
+		jsonObjAddress.put("permanentAddressState", student.getAddress().getPermanentAddressState());
+		jsonObjAddress.put("permanentAddressCountry", student.getAddress().getPermanentAddressCountry());
+		jsonObjAddress.put("permanentAddressPostOffice", student.getAddress().getPermanentAddressPostOffice());
+		jsonObjAddress.put("permanentAddressPoliceStation", student.getAddress().getPermanentAddressPoliceStation());
+		
+		jsonObjAddress.put("guardianAddressLine", student.getAddress().getGuardianAddressLine()); 
+		jsonObjAddress.put("guardianAddressLandmark", student.getAddress().getGuardianAddressLandmark()); 
+		jsonObjAddress.put("guardianAddressCityVillage", student.getAddress().getGuardianAddressCityVillage());
+		jsonObjAddress.put("guardianAddressPinCode", student.getAddress().getGuardianAddressPinCode());
+		jsonObjAddress.put("guardianAddressDistrict", student.getAddress().getGuardianAddressDistrict());
+		jsonObjAddress.put("guardianAddressState", student.getAddress().getGuardianAddressState());
+		jsonObjAddress.put("guardianAddressCountry", student.getAddress().getGuardianAddressCountry());
+		jsonObjAddress.put("guardianAddressPostOffice", student.getAddress().getGuardianAddressPostOffice());
+		jsonObjAddress.put("guardianAddressPoliceStation", student.getAddress().getGuardianAddressPoliceStation());
+		
 		addressDetails.put(jsonObjAddress);
 		jsonObj.put("address", addressDetails);
 		
-		if(null!=student.getResource().getFoodPreference())
 		jsonObj.put("foodPreference", student.getResource().getFoodPreference());
-		if(null!=student.getResource().getFirstPickUpPlace())
 		jsonObj.put("firstPickUpPlace", student.getResource().getFirstPickUpPlace());
-		if(null!=student.getResource().getHobbies())
 		jsonObj.put("hobbies", student.getResource().getHobbies());
-		if(null!=student.getResource().getPersonalIdentificationMark())
 		jsonObj.put("personalIdentificationMark", student.getResource().getPersonalIdentificationMark());
 		
-		if(null!=student.getPreviousSchoolName())
 		jsonObj.put("previousSchoolName", student.getPreviousSchoolName());
-		if(null!=student.getPreviousSchoolWebsite())
 		jsonObj.put("previousSchoolWebsite", student.getPreviousSchoolWebsite());
-		if(null!=student.getPreviousSchoolAddress())
 		jsonObj.put("previousSchoolAddress", student.getPreviousSchoolAddress());
-		if(null!=student.getPreviousSchoolPhone())
 		jsonObj.put("previousSchoolPhone", student.getPreviousSchoolPhone());
-		if(null!=student.getPreviousSchoolEmail())
 		jsonObj.put("previousSchoolEmail", student.getPreviousSchoolEmail());
-		if(null!=student.getPreviousAchivement())
 		jsonObj.put("previousAchivement", student.getPreviousAchivement());
 		
 		return jsonObj;
@@ -373,14 +319,14 @@ public class PushStudentDataToWebiq {
         return Base64.encodeBase64String(imageByteArray);
     }
 	
-	private String createUser(JSONObject jsonReq) {
+	private String createUser(String jsonReq) {
 		
-		//System.out.println(jsonReq);
-		String jsonRes = "fail";
+		System.out.println(jsonReq);
+		String jsonRes = null;
 		
 		try{
 			
-			/*String hostname = "apps.sainikschoolpurulia.com";
+			String hostname = "";
 			String port = "10389";
 			
 			final JSONObject obj = new JSONObject(jsonReq);
@@ -434,48 +380,13 @@ public class PushStudentDataToWebiq {
 	        // Create the entry
 	        context.createSubcontext(getUserDN(userName, baseDN), container);
 			 
-	        jsonRes = "success";*/
-			
-			final String ldapURI = "http://apps.sainikschoolpurulia.com/api/ldap/rest/createUser";
-			//System.out.println("URI:::"+ldapURI);
-			//System.out.println("JSON for LDAP:"+jsonReq.toString());
-			URL ldapURL = new URL(ldapURI);
-			HttpURLConnection ldapConnection = null;
-			OutputStreamWriter ldapOut = null;
-			String ldap_json_response = "";
-			InputStreamReader ldapIn = null;
-			BufferedReader ldapBr = null;
-			
-			ldapConnection = (HttpURLConnection)ldapURL.openConnection();
-			ldapConnection.setDoOutput(true);
-			ldapConnection.setRequestProperty("Content-Type", "application/json");
-			ldapConnection.setConnectTimeout(5000);
-			ldapConnection.setReadTimeout(5000);
-			ldapConnection.setRequestMethod("POST");
-			ldapOut = new OutputStreamWriter(ldapConnection.getOutputStream());
-			ldapOut.write(jsonReq.toString());
-			ldapOut.close();
-						
-			ldapIn = new InputStreamReader(ldapConnection.getInputStream());
-			ldapBr = new BufferedReader(ldapIn);
-			String text = "";
-			while((text = ldapBr.readLine())!= null){
-					ldap_json_response += text;
+	        jsonRes = "success";
+			 
+			}catch(Exception e){
+				jsonRes = "failed";
+				e.printStackTrace();
 			}
-			System.out.println("LDAP JSON RESPONSE: "+ldap_json_response);
-			
-			JSONObject ldapResponseObject = new JSONObject(ldap_json_response);
-			String message = (String)ldapResponseObject.get("message");
-			//System.out.println("Message from JSON response:"+message);
-			if(message.equalsIgnoreCase("success")){
-				jsonRes = "success";
-				//System.out.println("The LDAP User Creation was successful");
-			}else{
-				//System.out.println("The LDAP User Creation was a failure");
-			}			 
-		}catch(Exception e){
-			e.printStackTrace();
-		}
+		System.out.println(jsonRes);
 		return jsonRes;
 	}
 	

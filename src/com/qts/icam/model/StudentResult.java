@@ -1,8 +1,6 @@
 package com.qts.icam.model;
 
 import java.util.List;
-import java.util.Set;
-
 import com.qts.icam.model.Exam;
 import com.qts.icam.model.UploadFile;
 

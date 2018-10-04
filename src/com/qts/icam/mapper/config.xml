@@ -10,7 +10,8 @@
           <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
                 <property name="driver" value="org.postgresql.Driver"/>
-                <property name="url" value="jdbc:postgresql://127.0.0.1/iCAM_SSP_Migration_05072018"/>
+               <!--  <property name="url" value="jdbc:postgresql://206.189.77.220/demo"/> -->
+               	<property name="url" value="jdbc:postgresql://127.0.0.1/icam_ssp_v1"/>
                 <property name="username" value="pss"/>
                 <property name="password" value="pss"/>
             </dataSource>

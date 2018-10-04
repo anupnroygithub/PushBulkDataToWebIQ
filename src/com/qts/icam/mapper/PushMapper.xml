@@ -318,14 +318,11 @@
 			sec.section_name
 		FROM
 			standard s
-		LEFT JOIN 
-			section sec ON(sec.standard=s.rec_id AND sec.is_active=true)
+		LEFT JOIN section sec ON(sec.standard=s.rec_id AND sec.is_active=true)
 		WHERE
 			s.is_active = true
-		AND
-			section_code != 'NA'	
 		ORDER BY 
-			s.standard_id, sec.section_code;
+		s.standard_id, sec.section_code;
 	</select>
 	
 	<select id="selectStudentsToAssignSection" resultType="com.qts.icam.model.Student" parameterType="com.qts.icam.model.Student">
@@ -353,5 +350,145 @@
 		ORDER BY 
 			rollNumber;
 	</select>
+	
+	<select id="selectStudentsSubjectsAndMarks" resultType="com.qts.icam.model.StudentResult" parameterType="com.qts.icam.model.StudentResult">
+		SELECT
+			(student_roll :: text) as rollNumber,
+			student_name as name,
+			theory as theory,
+			practical as practical,
+			total as total,
+			pass as pass,
+			theory_pass as theoryPass,
+			practical_pass as practicalPass,
+			theory_obtained as theoryObtainedChar,
+			practical_obtained as practicalObtainedChar,
+			total_obtained as totalObtainedChar,
+			pass_fail as passFail
+		FROM
+			student_marks_v1
+		WHERE
+			subject= #{subject}
+		AND
+			standard = #{standard}
+		AND
+			section = #{section}
+		AND
+			exam_v1 = #{exam}
+		AND 
+			year = #{academicYear}
+		AND
+			is_active = true;	
+	</select>
 
+	<select id="getExamNameWithTermConcatination" resultType="java.lang.String" parameterType="com.qts.icam.model.Exam">
+		SELECT
+			exam_name || '(' || COALESCE(term ,'') || ')' as examName
+		FROM
+			exam_v1
+		WHERE
+			standard = (SELECT rec_id FROM standard WHERE standard_code = #{standardCode} AND is_active = true)
+		AND
+			exam_code = #{examCode}	
+		AND 
+			is_active = true;
+	</select>
+
+	<select id="getExamNameWithoutTermConcatination" resultType="java.lang.String" parameterType="com.qts.icam.model.Exam">
+		SELECT
+			exam_name as examName
+		FROM
+			exam_v1
+		WHERE
+			standard = (SELECT rec_id FROM standard WHERE standard_code = #{standardCode} AND is_active = true)
+		AND
+			exam_code = #{examCode}	
+		AND 
+			is_active = true;
+	</select>
+	
+	<update id="updateContactDataOfStudent" parameterType="java.util.List">
+		<foreach item="student" collection="list" index="index" open="" close="" separator=";">
+			UPDATE 
+				resource 
+			SET
+				mobile_no = #{student.mobileNo},
+				date_of_birth = (SELECT extract(epoch from (SELECT to_timestamp(#{student.resource.dateOfBirth},'DD-MM-YYYY'))))
+			WHERE
+				user_id = #{student.roll}
+			AND
+				is_active = true;			
+		</foreach>
+	</update>
+	
+	<select id="getStandardListInHistory" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT DISTINCT
+			standard as standard
+		FROM
+			history_student_marks_v1
+		WHERE
+			year = #{year}
+		AND	
+			is_active = true;	
+	</select>
+	
+	<select id="getAllSerialId" resultType="java.lang.Integer" parameterType="com.qts.icam.model.StudentHistoryData">
+		SELECT
+			serial_id as serialId
+		FROM
+			history_student_marks_v1
+		WHERE
+			year = #{academicYear}
+		AND
+			standard = #{standard}
+		AND	
+			is_active = true;
+	</select>
+	
+	<resultMap type="com.qts.icam.model.StudentHistoryData" id="getHistoricalMarksRM">
+		<id property="academicYear" column="year" jdbcType="INTEGER" />
+		<result property="standard" column="standard" jdbcType="VARCHAR" />
+		<result property="section" column="section" jdbcType="VARCHAR" />
+		<result property="examCode" column="exam_v1" jdbcType="VARCHAR" />
+		<result property="subject" column="subject" jdbcType="VARCHAR" />
+		<collection property="studentResultList" ofType="com.qts.icam.model.StudentResult">
+			<id property="rollNumber" column="rollNumber" jdbcType="VARCHAR" />
+			<result property="name" column="student_name" jdbcType="VARCHAR" />
+			<result property="theory" column="theory" jdbcType="INTEGER" />
+			<result property="practical" column="practical" jdbcType="INTEGER" />
+			<result property="theoryObtainedChar" column="theory_obtained" jdbcType="VARCHAR" />
+			<result property="practicalObtainedChar" column="practical_obtained" jdbcType="VARCHAR" />
+			<result property="passFail" column="pass_fail" jdbcType="VARCHAR" />
+		</collection>
+	</resultMap>
+	<select id="getHistoricalMarks" resultMap="getHistoricalMarksRM" parameterType="java.lang.Integer">
+		SELECT
+			year,
+			standard,
+			section,
+			exam_v1,
+			subject,
+			(student_roll :: text) as rollNumber,
+			student_name,
+			theory,
+			practical,
+			theory_obtained,
+			practical_obtained,
+			pass_fail
+		FROM
+			history_student_marks_v1
+		WHERE
+			serial_id = #{id}
+		AND	
+			is_active = true;
+	</select>
+	
+	<select id="getAcadmicYearListInHistory" resultType="java.lang.String">
+		SELECT DISTINCT
+			year as year
+		FROM 
+			history_student_marks_v1
+		WHERE
+			is_active = true;		
+	</select>
 </mapper>

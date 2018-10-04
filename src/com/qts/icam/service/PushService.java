@@ -4,7 +4,10 @@ import java.util.List;
 
 import com.qts.icam.dao.PushDao;
 import com.qts.icam.model.AcademicYear;
+import com.qts.icam.model.Exam;
 import com.qts.icam.model.Student;
+import com.qts.icam.model.StudentHistoryData;
+import com.qts.icam.model.StudentResult;
 import com.qts.icam.model.WebIQTransaction;
 import com.qts.icam.model.Standard;
 
@@ -39,5 +42,29 @@ public class PushService {
 	
 	public List<Student> getStudentsToAssignSection(Student student){
 		return pushDao.getStudentsToAssignSection(student);
+	}
+	
+	public List<StudentResult> getStudentResult(StudentResult studentResult){
+		return pushDao.getStudentResult(studentResult);
+	}
+
+	public String getExamNameForCode(Exam exam) {
+		return pushDao.getExamNameForCode(exam);
+	}
+
+	public String updateContactDataOfStudent(List<Student> studentList) {
+		return pushDao.updateContactDataOfStudent(studentList);
+	}
+
+	public List<StudentHistoryData> getHistoricalMarks(StudentHistoryData studentHistory) {
+		return pushDao.getHistoricalMarks(studentHistory);
+	}
+
+	public List<String> getStandardListInHistory(String year) {
+		return pushDao.getStandardListInHistory(year);
+	}
+
+	public List<String> getAcadmicYearListInHistory() {
+		return pushDao.getAcadmicYearListInHistory();
 	}
 }

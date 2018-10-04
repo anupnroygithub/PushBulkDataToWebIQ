@@ -19,7 +19,7 @@ import com.qts.icam.service.PushService;
 
 public class PushStudentSectionDataToWebiq {
 	
-	private static String uri = "http://apps.sainikschoolpurulia.com/api/webiq/v1/updateStandardSectionForCadet";
+	private static String uri = "http://demoapi.sayakonline.com/v1/updateStandardSectionForCadet";
 	private static String portalUserName = "adminwebservice@qtsin.net";
 	private static String portalPassWord = "!Q2w3e4r";
 	
@@ -51,7 +51,7 @@ public class PushStudentSectionDataToWebiq {
 					
 					String status = pushStudentSectionDataToWebiq.sendJsonData(jsonObj);
 					
-					System.out.println("Cadet Section push to Webiq " + status);
+					System.out.println("Cadet Section push to Webiq " + status + "  for Cadet having Roll Number : " +  student.getRollNumber());
 				}
 			}
 			
